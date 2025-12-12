@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Вход {% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h1><i class="fas fa-sign-in-alt"></i> Вход в систему</h1>
+    
+    <form method="POST" class="auth-form">
+        {{ form.hidden_tag() }}
+        
+        <div class="form-group">
+            {{ form.username.label }}
+            {{ form.username(class="form-control") }}
+            {% for error in form.username.errors %}
+                <span class="error">{{ error }}</span>
+            {% endfor %}
+        </div>
+        
+        <div class="form-group">
+            {{ form.password.label }}
+            {{ form.password(class="form-control") }}
+            {% for error in form.password.errors %}
+                <span class="error">{{ error }}</span>
+            {% endfor %}
+        </div>
+        
+        {{ form.submit(class="btn-submit") }}
+    </form>
+    
+    <div class="auth-links">
+        <p>Нет аккаунта? <a href="{{ url_for('register') }}">Зарегистрируйтесь</a></p>
+        <p><small>Тестовый аккаунт: admin / admin123</small></p>
+    </div>
+</div>
+{% endblock %}

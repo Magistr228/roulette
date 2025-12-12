@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+{% block title %}Игра{% endblock %}
+
+{% block content %}
+<div class="game-container">
+    <div class="game-header">
+        <h1><i class="fas fa-roulette"></i> Рулетка </h1>
+        <div class="balance-display">
+            <div class="balance-card">
+                <h3>Ваш баланс</h3>
+                <p class="balance-amount" id="balance">{{ user.balance }} 💵</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-content">
+        <!-- Блок отображения результата рулетки -->
+        <div class="roulette-result-container">
+            <div class="result-header">
+                <h3><i class="fas fa-history"></i> Результат последнего вращения</h3>
+            </div>
+
+            <div class="result-content">
+                <div class="result-number-display">
+                    <div class="number-label">Выпавшее число:</div>
+                    <div class="number-value" id="winningNumber">0</div>
+                </div>
+
+                <div class="result-color-display">
+                    <div class="color-label">Цвет:</div>
+                    <div class="color-value" id="winningColor">Зеленый</div>
+                </div>
+            </div>
+
+            <!-- Анимационный индикатор для нового вращения -->
+            <div class="spinning-indicator" id="spinningIndicator" style="display: none;">
+                <div class="spinner"></div>
+                <div class="spinner-text">Рулетка вращается...</div>
+            </div>
+        </div>
+
+        <div class="bet-controls">
+            <div class="bet-amount">
+                <label for="betAmount">СУММА СТАВКИ:</label>
+
+                <input type="number" id="betAmount" min="10" max="{{ user.balance }}" value="100">
+                <button class="btn-amount" onclick="setBetAmount(50)">50</button>
+                <button class="btn-amount" onclick="setBetAmount(100)">100</button>
+                <button class="btn-amount" onclick="setBetAmount(500)">500</button>
+                <button class="btn-amount" onclick="setBetAmount(1000)">1000</button>
+                <p>-------------------------------------------</p>
+            </div>
+
+            <div class="bet-options">
+                <p>Выберите цвет:</p>
+                <div class="bet-red">
+                    <button class="bet-btn red-btn" onclick="placeBet('red')">
+                        <i class="fas fa-square"></i> КРАСНОЕ (x2)
+                    </button>
+                </div>
+
+                <div class="bet-black">
+                    <button class="bet-btn black-btn" onclick="placeBet('black')">
+                        <i class="fas fa-square"></i> ЧЕРНОЕ (x2)
+                    </button>
+                    <p>Ставка возвращается в двойном размере</p>
+                    <p>-------------------------------------------</p>
+                </div>
+
+                <div class="bet-number">
+                    <label for="numberSelect">Выберите число (0-36):</label>
+                    <div class="number-select-wrapper">
+                        <select id="numberSelect">
+                            {% for i in range(0, 37) %}
+                            <option value="{{ i }}">{{ i }}</option>
+                            {% endfor %}
+                        </select>
+                        <button class="bet-btn number-btn" onclick="placeBet('number')">
+                            <i class="fas fa-dice"></i> ЧИСЛО (x36)
+                        </button>
+                    </div>
+                    <p>Ставка умножается на 36</p>
+                    <p>-------------------------------------------</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-stats">
+        <div class="stats-card">
+            <h3><i class="fas fa-chart-bar"></i> Ваша статистика</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-label">Всего ставок:</span>
+                    <span class="stat-value">{{ user.total_bets }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Выигранных:</span>
+                    <span class="stat-value">{{ user.total_wins }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Процент побед:</span>
+                    <span class="stat-value">
+                        {% if user.total_bets > 0 %}
+                            {{ ((user.total_wins / user.total_bets) * 100)|round(2) }}%
+                        {% else %}
+                            0%
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Общий выигрыш:</span>
+                    <span class="stat-value">{{ user.total_win_amount }} 💵</span>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+
+<div id="resultModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <div id="modalContent">
+            <!-- Результат будет здесь -->
+        </div>
+    </div>
+</div>
+
+<script>
+let currentBalance = {{ user.balance }};
+
+function setBetAmount(amount) {
+    const input = document.getElementById('betAmount');
+    input.value = amount;
+    input.max = currentBalance;
+}
+
+async function placeBet(type) {
+    const amountInput = document.getElementById('betAmount');
+    const amount = parseInt(amountInput.value);
+
+    if (amount < 10) {
+        showResult('Ошибка', 'Минимальная ставка: 10');
+        return;
+    }
+
+    if (amount > currentBalance) {
+        showResult('Ошибка', 'Недостаточно средств!');
+        return;
+    }
+
+    // Показываем индикатор вращения
+    const spinner = document.getElementById('spinningIndicator');
+    spinner.style.display = 'block';
+
+    const data = {
+        type: type,
+        amount: amount
+    };
+
+    if (type === 'number') {
+        const numberSelect = document.getElementById('numberSelect');
+        data.number = numberSelect.value;
+    }
+
+    try {
+        const response = await fetch('/api/bet', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        // Имитация вращения рулетки (2 секунды)
+        setTimeout(() => {
+            // Скрываем индикатор вращения
+            spinner.style.display = 'none';
+
+            // Показываем результат
+            showRouletteResult(result);
+
+        }, 2000);
+
+    } catch (error) {
+        console.error('Error:', error);
+        spinner.style.display = 'none';
+        showResult('Ошибка', 'Произошла ошибка при выполнении ставки');
+    }
+}
+
+function showRouletteResult(result) {
+    if (!result.success) {
+        showResult('Ошибка', result.message);
+        return;
+    }
+
+    const winningNumber = document.getElementById('winningNumber');
+    const winningColor = document.getElementById('winningColor');
+
+    winningNumber.textContent = result.winning_number;
+
+    let colorText = '';
+    let colorClass = '';
+
+    if (result.winning_color === 'red') {
+        colorText = 'КРАСНОЕ';
+        colorClass = 'red';
+    } else if (result.winning_color === 'black') {
+        colorText = 'ЧЕРНОЕ';
+        colorClass = 'black';
+    } else {
+        colorText = 'ЗЕЛЕНЫЕ 0';
+        colorClass = 'green';
+    }
+
+    winningColor.textContent = colorText;
+    winningColor.className = 'color-value ' + colorClass;
+
+    // Обновляем баланс
+    currentBalance = result.new_balance;
+    document.getElementById('balance').textContent = currentBalance + ' 💵';
+
+    // Показываем результат в модальном окне
+    if (result.win) {
+        const winMessage = result.win_amount > 1000 ?
+            `🎉 ДЖЕКПОТ! Вы выиграли ${result.win_amount} 💵` :
+            `🎉 Поздравляем! Вы выиграли ${result.win_amount} 💵`;
+
+        showResult('Победа!', winMessage);
+
+        if (result.achievement_unlocked) {
+            setTimeout(() => {
+                showResult('🏆 Достижение!', 'Вы получили достижение: фото с Icegergert!');
+            }, 2000);
+        }
+    } else {
+        showResult('Проигрыш', `Выпало ${result.winning_number} (${colorText})`);
+    }
+    
+    // Обновляем список последних ставок
+    loadRecentBets();
+}
+
+function showResult(title, message) {
+    const modal = document.getElementById('resultModal');
+    const modalContent = document.getElementById('modalContent');
+    
+    modalContent.innerHTML = `
+        <h2>${title}</h2>
+        <p>${message}</p>
+        <button class="btn-close" onclick="closeModal()">OK</button>
+    `;
+    
+    modal.style.display = 'block';
+}
+
+function closeModal() {
+    const modal = document.getElementById('resultModal');
+    modal.style.display = 'none';
+}
+
+async function loadRecentBets() {
+    // Загрузка последних ставок (нужно добавить соответствующий эндпоинт в app.py)
+    // Пока оставим пустым
+}
+
+// Закрытие модального окна при клике вне его
+window.onclick = function(event) {
+    const modal = document.getElementById('resultModal');
+    if (event.target == modal) {
+        closeModal();
+    }
+}
+</script>
+{% endblock %}

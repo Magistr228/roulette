@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}Рулетка - Главная{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="hero-content">
+        <h1>Добро пожаловать в <span class="highlight">Рулетка</span></h1>
+        <p class="hero-subtitle">Создано в ознакомительных целях</p>
+        <p class="hero-subtitle"> не является азартной игрой!</p>
+
+        {% if not current_user.is_authenticated %}
+        <div class="hero-buttons">
+            <a href="{{ url_for('register') }}" class="btn btn-primary">
+                <i class="fas fa-user-plus"></i> Начать игру
+            </a>
+            <a href="{{ url_for('login') }}" class="btn btn-secondary">
+                <i class="fas fa-sign-in-alt"></i> Войти
+            </a>
+        </div>
+        {% else %}
+        <div class="hero-buttons">
+            <a href="{{ url_for('game') }}" class="btn btn-success">
+                <i class="fas fa-play"></i> Играть сейчас
+            </a>
+            <a href="{{ url_for('profile') }}" class="btn btn-secondary">
+                <i class="fas fa-user"></i> Мой профиль
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="features">
+    <h2 class="section-title">Почему выбирают нас?</h2>
+
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-gift"></i>
+            </div>
+            <h3>Бонус при регистрации</h3>
+            <p>Получите 1000 кредитов при создании аккаунта</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h3>Безопасная игра</h3>
+            <p>Гарантируем честность каждой ставки</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <h3>Подробная статистика</h3>
+            <p>Отслеживайте все свои победы и достижения</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-crown"></i>
+            </div>
+            <h3>Система достижений</h3>
+            <p>Получайте уникальные награды за успехи</p>
+        </div>
+    </div>
+</div>
+
+<style>
+.hero-section {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: linear-gradient(135deg, rgba(44, 62, 80, 0.9), rgba(26, 26, 46, 0.9));
+    border-radius: 20px;
+    margin-bottom: 3rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hero-content h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: white;
+}
+
+.highlight {
+    background: linear-gradient(90deg, #3498db, #2ecc71);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    color: #8a9ba8;
+    margin-bottom: 2rem;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.features {
+    margin-bottom: 3rem;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    color: white;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+}
+
+.feature-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.feature-icon {
+    font-size: 2.5rem;
+    color: #3498db;
+    margin-bottom: 1rem;
+}
+
+.feature-card h3 {
+    color: white;
+    margin-bottom: 0.5rem;
+}
+
+.feature-card p {
+    color: #8a9ba8;
+    line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+    .hero-content h1 {
+        font-size: 2rem;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+    }
+
+    .hero-buttons .btn {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}
